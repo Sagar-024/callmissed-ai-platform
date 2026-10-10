@@ -57,6 +57,7 @@ function toResponse(job: ImageJob): ImageJobResponse {
 
 async function run(job: ImageJob): Promise<void> {
   job.updated_at = Date.now();
+  const startedAt = Date.now();
 
   try {
     const result = await generateImages({
@@ -76,7 +77,13 @@ async function run(job: ImageJob): Promise<void> {
     job.status = "succeeded";
     job.cost_usd = env.IMAGE_COST_USD_EACH * job.n;
     store.addCost(job.cost_usd, 0);
+    console.log(
+      `[images] job=${job.id} succeeded in ${Date.now() - startedAt}ms (${images.length} image(s))`,
+    );
   } catch (err) {
+    console.error(
+      `[images] job=${job.id} failed after ${Date.now() - startedAt}ms: ${err instanceof Error ? `${err.name}: ${err.message}` : String(err)}`,
+    );
     job.status = "failed";
     job.error =
       err instanceof GatewayError

@@ -7,7 +7,7 @@ import {
   removeCachedGalleryItem,
   type GalleryItem,
 } from "@/lib/images/cache";
-import { runPollLoop, waitWithTimeout } from "@/lib/images/polling";
+import { isTerminalJobStatus, runPollLoop, waitWithTimeout } from "@/lib/images/polling";
 import type { ImageJobResponse } from "@/lib/schemas";
 
 export type ActiveImageJob = {
@@ -99,7 +99,7 @@ export function useImageStudio() {
         throw Object.assign(new Error(apiError.message), { api: apiError });
       }
 
-      const accepted = (await res.json()) as { id: string; status: string; created_at: number };
+      const accepted = (await res.json()) as ImageJobResponse;
       acceptedId = accepted.id;
       setActive((prev) => prev.map((job) => (job.id === tempId ? { ...job, id: accepted.id } : job)));
 
@@ -108,7 +108,12 @@ export function useImageStudio() {
 
       let consecutivePollFailures = 0;
 
-      const final = await runPollLoop(accepted.id, {
+      // The server now completes generation within the POST request, so the
+      // response is already terminal and no cross-request polling is needed.
+      // Polling is retained as a fallback for any non-terminal response.
+      const final = isTerminalJobStatus(accepted.status)
+        ? accepted
+        : await runPollLoop(accepted.id, {
         signal: controller.signal,
         wait: waitWithTimeout,
         onUpdate: (job, attempt) => {

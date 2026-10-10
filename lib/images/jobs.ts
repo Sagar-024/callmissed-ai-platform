@@ -56,7 +56,6 @@ function toResponse(job: ImageJob): ImageJobResponse {
 }
 
 async function run(job: ImageJob): Promise<void> {
-  job.status = "running";
   job.updated_at = Date.now();
 
   try {
@@ -88,13 +87,23 @@ async function run(job: ImageJob): Promise<void> {
   }
 }
 
-export function createImageJob(input: ImageRequest, identity: string): ImageJobResponse {
+// Generation runs synchronously inside the caller's request. The previous
+// design settled a job via a fire-and-forget background task and had clients
+// poll a separate GET route, but on serverless platforms each request can be
+// served by a different instance with its own memory, so the background task
+// could be frozen before it finished and the poll could miss the job entirely
+// ("Job expired or was never visible to this client."). Doing the work inline
+// keeps creation and result in the same invocation.
+export async function createImageJob(
+  input: ImageRequest,
+  identity: string,
+): Promise<ImageJobResponse> {
   purgeStale();
   const now = Date.now();
   const job: ImageJob = {
     id: randomUUID(),
     identity,
-    status: "queued",
+    status: "running",
     prompt: input.prompt,
     model: input.model,
     n: input.n,
@@ -104,7 +113,7 @@ export function createImageJob(input: ImageRequest, identity: string): ImageJobR
     updated_at: now,
   };
   registry.set(job.id, job);
-  void run(job);
+  await run(job);
   return toResponse(job);
 }
 

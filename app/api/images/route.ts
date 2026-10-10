@@ -7,10 +7,7 @@ export const maxDuration = 60;
 export const POST = withBudget(
   { route: "images", schema: imageRequestSchema },
   async (_req, _ctx, bc) => {
-    const job = createImageJob(bc.body, bc.identity);
-    return Response.json(
-      { id: job.id, status: job.status, created_at: job.created_at },
-      { status: 202 },
-    );
+    const job = await createImageJob(bc.body, bc.identity);
+    return Response.json(job, { status: 200 });
   },
 );

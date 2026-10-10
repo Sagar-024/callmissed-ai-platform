@@ -58,7 +58,7 @@ export function SkeletonCard({ job }: { job: ActiveImageJob }) {
             />
           </span>
           <span className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
-            {running ? `Generating · poll #${job.pollAttempt + 1}` : "Queued"}
+            {running ? "Generating…" : "Queued…"}
           </span>
           <span className="font-mono text-[10px] text-muted-foreground">{elapsed}s</span>
         </div>

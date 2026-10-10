@@ -78,7 +78,7 @@ export function useImageStudio() {
       model: input.model,
       size: input.size,
       n: input.n,
-      status: "queued",
+      status: "running",
       pollAttempt: 0,
       started_at: Date.now(),
     };

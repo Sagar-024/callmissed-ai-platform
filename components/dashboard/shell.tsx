@@ -29,9 +29,9 @@ const modules: ModuleDescriptor[] = [
     href: "/images",
     module: "B",
     title: "Image Studio",
-    description: "Asynchronous generation jobs with an IndexedDB-persistent gallery.",
+    description: "Prompt-to-image generation with a persistent, downloadable gallery.",
     icon: <ImageIcon className="h-4 w-4" />,
-    tags: ["Async", "Gallery", "IndexedDB"],
+    tags: ["Generation", "Gallery", "IndexedDB"],
   },
   {
     href: "/voice",
